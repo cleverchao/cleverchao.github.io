@@ -10272,7 +10272,6 @@ if ( typeof define === "function" && define.amd ) {
 }
 
 
-debugger;
 
 var
 	// Map over jQuery in case of overwrite
