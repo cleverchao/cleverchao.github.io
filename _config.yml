@@ -11,13 +11,13 @@
 # (Using that method instead of site.owner, in case your posts get cloned with your repo.)
 
 # Site settings
-title: zhengjiachao's site
+title: zhengjiachao's space
 description: Be a good man
 owner:
   name: Jiachao Zheng # or company name
   email: zhengjiachao521@gmail.com
   url: http://www.zhengjiachao.com
-first_published: 2016 # if migrating another site, the year of your first publish
+first_published: 2014 # if migrating another site, the year of your first publish
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://www.zhengjiachao.com" # the base hostname & protocol for your site
 
@@ -25,7 +25,7 @@ url: "http://www.zhengjiachao.com" # the base hostname & protocol for your site
 # - set the greeting only if you want to display the first green section
 greeting:
   title: Welcome!  
-  text: I hope you enjoy my collection
+  text: Also get in touch with me from these places
 # - title for your blog's featured posts
 features-title: Featured topics
 # - displayed at the bottom
@@ -34,10 +34,10 @@ closing-para: Feel free to get in touch. Cheers!
 
 # on all pages (and the first three you list display with greeting, if included)
 social:
-  #twitter: https://twitter.com/arkadianriver
+  twitter: https://twitter.com/cleverchao
   github: https://github.com/cleverchao
   #linkedin-square: https://linkedin.com/in/arkadianriver
-  #facebook-official: https://facebook.com/gary.faircloth
+  facebook-official: https://www.facebook.com/zheng.jiachao
   #google-plus-square: https://plus.google.com/u/0/+GaryFaircloth
   email: /contact/
   #flickr:
