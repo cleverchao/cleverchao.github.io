@@ -168,8 +168,8 @@ end
 tslug.downcase!
 
 t = Time.new
-tstamp = t.strftime("%Y-%d-%m %H:%M:%S")
-dstamp = t.strftime("%Y-%d-%m")
+tstamp = t.strftime("%Y-%m-%d %H:%M:%S")
+dstamp = t.strftime("%Y-%m-%d")
 
 ext = cfgfile['compose']['extension'] ? cfgfile['compose']['extension'] : 'md'
 
