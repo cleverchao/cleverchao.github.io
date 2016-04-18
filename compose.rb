@@ -196,6 +196,7 @@ else
       f.puts "  - " + cat
     end
     if (back) then f.puts "background-image: " + back end
+    f.puts "author: zhengjiachao"
     f.puts "#date/lastupdated are optional"
     f.puts "#date: " + tstamp
     f.puts "#lastupdated: " + tstamp
