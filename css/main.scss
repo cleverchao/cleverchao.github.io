@@ -117,6 +117,11 @@ $baseurl: '{{ site.baseurl }}/images';
 		}
 	}
 
+	h1 {
+		font-size: _font(hdr-size-xxlarge);
+		line-height: 2.25em;
+	}
+
 	h2 {
 		font-size: _font(hdr-size-xlarge);
 		line-height: 1.75em;
@@ -1218,7 +1223,7 @@ $baseurl: '{{ site.baseurl }}/images';
 				color: _palette($p, fg-bold);
 			}
 
-			h2, h3, h4, h5, h6 {
+			h1, h2, h3, h4, h5, h6 {
 				color: _palette($p, fg-bold);
 			}
 
