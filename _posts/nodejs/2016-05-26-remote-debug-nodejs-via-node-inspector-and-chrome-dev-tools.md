@@ -22,6 +22,7 @@ author: zhengjiachao
 
 远程调试的时候，需要node-inspector和 node进程在同一机器上，但是chrome浏览器可以在其他机器上进行远程调试
 步骤如下：
+
 > 1. npm install -g node-inspector
 > 2. node-inspector -p 24680 //-p 是指定http的端口，默认为8080
 > 3. node --debug-brk=12345 app.js //--debug-brk=12345指定断在第一行代码，然后这个调试端口是12345
