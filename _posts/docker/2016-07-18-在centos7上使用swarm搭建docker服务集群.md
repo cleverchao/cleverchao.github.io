@@ -1,0 +1,234 @@
+---
+title: 在centos7上使用swarm搭建docker服务集群
+excerpt: 踩坑无数得到的一个swarm集群
+tags: featured swarm docker
+categories:
+  - topics
+  - docker
+author: zhengjiachao
+#date/lastupdated are optional
+#date: 2016-07-18 16:57:52
+#lastupdated: 2016-07-18 16:57:52
+---
+
+## 一、 前言 ##
+
+swarm是docker官方推出的一个docker集群管理工具，用于把一系列docker节点（一个docker宿主机）管理起来然后让外面看起来好像这一堆docker节点是一个docker宿主机一样。只是一个管理工具，而不是运行时提供负载均衡的作用。
+swarm提供了跟docker客户端一样的api，所以其他管理docker的工具也可以跟swarm结合的很好。
+其他的不多说，本文主要给出一个swarm集群的过程。
+
+**吐槽：**
+1. docker发展的很快，所以也导致版本较多，文档混乱，不同的文档给出的用法都不一样，所以坑特别多。
+2. 网上的视频或者常见的教程以及官方文档给出的swarm集群搭建都是使用virtualbox+docker machine来搭建的，使用这个组合确实简单，随便运行几个命令就搞定了，但是你让我部署服务的时候也用docker machine创建virtualbox啊？啊？啊？ 你这么教我搭建swarm和没教有啥区别啊。。。
+
+
+## 二、 环境 ##
+
+### 1. 环境清单 ###
+
+**主机环境：**
+win7系统安装了virtualbox，virtualbox里面有三个虚拟机，每个虚拟机里面都安装了centos7.2的系统
+
+**网络环境：**
+主机处在公司局域网中，虚拟机使用桥接方式加入局域网
+
+**虚拟机ip：**
+manager：10.2.9.54
+cluster1：10.2.9.82
+cluster2：10.2.9.49
+
+**docker版本：**
+1.11.2
+
+**swarm版本：**
+1.2.3(latest)
+
+### 2. 吐槽 ###
+
+**吐槽**：
+
+之所以把环境写的这么详细，就是因为大部分时间其实都是被环境所困扰而进行不下去的。
+1. 网络环境
+   网络环境处于公司的局域网中，同时因为需要跟docker的镜像库进行通信，所以虚拟机需要跟外网可以连接。刚好公司控制外网连接的方式是打开浏览器，输入员工账号登录，然后上网，而我下载的是minimal的centos镜像，没有ui，所以在能上外网这里就耽误了好久，后来终于可以使用curl发送一个登录链接来让虚拟机上网。
+2. docker版本
+   centos7.2自带的yum源更新到最新后，如果直接执行yum install docker，那么安装的是1.10版本的docker，看起来也蛮新的，但是就是这0.1个版本的差距，会让最新的swarm运行不起来，运行就会报错
+
+
+### 3. 环境准备 ###
+
+**主机环境**
+win7和virtualbox的安装就不说了，centos7.2的镜像我是从阿里云上找的[http://mirrors.aliyun.com/centos/7.2.1511/isos/x86_64/CentOS-7-x86_64-Minimal-1511.iso](http://mirrors.aliyun.com/centos/7.2.1511/isos/x86_64/CentOS-7-x86_64-Minimal-1511.iso)
+
+**网络环境**
+主机能上外网即可，然后虚拟机使用桥接模式链接网络
+
+**虚拟机ip**
+桥接后，会分配局域网ip，我们这里的swarm使用局域网管理集群
+
+**docker版本：**
+1.11.2版本的docker版本可以使用如下命令进行安装，也是使用阿里云提供的脚本（这个脚本后期也许会安装更新版本的docker，不一定是1.11.2了，如果发生类似情况，比如docker升级到了1.12以上，那么本文可能不再适用，因为1.12的docker好像会默认集成swarm了，而不是像现在一样作为一个镜像）
+
+```bash
+
+curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -
+
+```
+
+**swarm版本：**
+1.2.3(latest)
+安装docker以后，执行 `docker pull swarm` 即可获取最新版本的swarm，当然随着时间的推移，版本肯定也不会一直是1.2.3，如果最新的版本不兼容，那么pull 1.2.3版本的swarm即可。
+
+所有虚拟机上都要安装好docker和swarm。
+
+## 三、 开始搭建集群 ##
+
+环境已经准备好了，现在就开始搭建集群了。
+我们的集群一共有三个节点：
+1. manager ： 负责管理
+2. cluster1： 服务节点1
+3. cluster2： 服务节点2
+
+下面就是具体的步骤了：
+
+0.如果已经启动的docker的服务（daemon），那么需要首先停止它： `service docker stop`
+
+1.在所有的虚拟机上（manager、cluster1、cluster2）上运行下面的这个命令
+
+```bash
+
+sudo docker daemon -H tcp://0.0.0.0:2375 &
+
+```
+
+这条命令的意思是在后台启动docker的服务（daemon）并且让其监听2375端口。
+docker是c-s（客户端-服务端）架构的，我们运行的docker命令都是传递给docker客户端的，docker客户端再连接到docker的服务端（daemon）进行操作，所以当我们执行完这个命令之后，再操作docker的时候，如果不给客户端重新指定端口的话，就会出现
+
+> Cannot connect to the Docker daemon. Is the docker daemon running on this host?
+
+这样的错误提示，所以后面我们都要通过`docker -H :2375 command`这种形式指定2375端口来访问docker的服务。
+
+2.在任意一台机器上执行如下命令获取一个token
+
+```bash
+
+sudo docker  -H :2375 run --rm swarm create
+
+```
+
+这条命令会得到一个token，这个token是集群的标识，后面加入集群和管理集群都需要这个token， 假设这里得到的token是`e23e478505cb7bae624ca9a4b604d0ab`
+
+3.现在在cluster1上执行如下命令加入集群
+
+```bash
+
+sudo docker -H :2375 run -d swarm join --addr=10.2.9.82:2375 token://e23e478505cb7bae624ca9a4b604d0ab
+
+```
+
+这条命令的意思是：docker连接到本机2375端口的服务端，然后swarm join表示加入swarm的集群，--addr是告诉swarm集群当前的节点的服务端如何访问，所以给出了cluster1的ip和2375端口；最后的token就是上面我们生成的token。
+
+4.执行如下命令，确认swarm确实已经运行起来了`sudo docker -H :2375 ps`
+
+5.在cluster2上执行3相同的命令，就是把ip换成cluster2的命令
+
+```bash
+
+sudo docker -H :2375 run -d swarm join --addr=10.2.9.49:2375 token://e23e478505cb7bae624ca9a4b604d0ab
+
+```
+
+6.两个节点已经都加入swarm集群了，下面我们就启动manager来对集群进行管理
+
+```bash
+
+sudo docker -H :2375 run -d -p 5000:2375 swarm manage token://e23e478505cb7bae624ca9a4b604d0ab
+
+```
+执行完这条命令后，就可以通过`docker -H :5000 command`来管理集群了。
+
+7.在manager上执行如下命令查看集群情况
+
+```bash
+
+sudo docker -H :2375 run --rm swarm list token://e23e478505cb7bae624ca9a4b604d0ab
+
+```
+
+结果：
+
+> 10.2.9.49:2375
+> 
+> 10.2.9.82:2375
+
+8.在manager上执行下面的命令查看集群信息
+
+```bash
+
+sudo docker -H :5000 info
+
+```
+
+> Containers: 6
+ Running: 6
+ Paused: 0
+ Stopped: 0
+Images: 13
+Server Version: swarm/1.2.3
+Role: primary
+Strategy: random
+Filters: health, port, containerslots, dependency, affinity, constraint
+Nodes: 2
+ localhost.localdomain: 10.2.9.82:2375
+  └ ID: 5CNI:LL3F:QO6P:6O66:7257:JJJZ:43SV:Q55Y:LMZL:P6Q4:A6Z6:DP5M
+  └ Status: Healthy
+  └ Containers: 3
+  └ Reserved CPUs: 0 / 1
+  └ Reserved Memory: 0 B / 1.018 GiB
+  └ Labels: executiondriver=, kernelversion=3.10.0-327.el7.x86_64, label_name=cluster1, operatingsystem=CentOS Linux 7 (Core), storagedriver=devicemapper
+  └ UpdatedAt: 2016-07-19T02:11:56Z
+  └ ServerVersion: 1.11.2
+ localhost.localdomain: 10.2.9.49:2375
+  └ ID: VEVW:3CVX:NGDW:BCYE:ITS7:GO5W:BZS3:42L4:L4OQ:QR65:UV4L:2J75
+  └ Status: Healthy
+  └ Containers: 3
+  └ Reserved CPUs: 0 / 1
+  └ Reserved Memory: 0 B / 1.018 GiB
+  └ Labels: executiondriver=, kernelversion=3.10.0-327.el7.x86_64, label_name=cluster2, operatingsystem=CentOS Linux 7 (Core), storagedriver=devicemapper
+  └ UpdatedAt: 2016-07-19T02:11:35Z
+  └ ServerVersion: 1.11.2
+Plugins: 
+ Volume: 
+ Network: 
+Kernel Version: 3.10.0-327.el7.x86_64
+Operating System: linux
+Architecture: amd64
+CPUs: 2
+Total Memory: 2.036 GiB
+Name: 3f94ad434955
+Docker Root Dir: 
+Debug mode (client): false
+Debug mode (server): false
+WARNING: No kernel memory limit support
+> 
+
+可以看到Nodes下面有两个节点，就是我们的cluster1和2， 他们的status都是healthy，这就说明集群节点都正常，如果status是pending或者其他的，一般就会有个Error来说明错误是什么错误，解决错误即可。如果是克隆的虚拟机，可能会报key duplicate之类的错误，这个错误只需要把/etc/docker/key.json删除，然后按照步骤1重新启动docker daemon即可。
+
+9.在manager上执行下面命令来操作集群，启动一个容器
+
+```bash
+
+sudo docker -H :5000 run -dt --name swarm-test busybox /bin/sh
+
+```
+
+10.通过下面命令查看集群情况
+
+```bash
+
+sudo docker -H :5000 ps
+
+```
+
+至此集群就搭建完毕了，之后对集群的操作都可以通过对manager节点上5000端口的服务（daemon）操作来完成了。
+
+
