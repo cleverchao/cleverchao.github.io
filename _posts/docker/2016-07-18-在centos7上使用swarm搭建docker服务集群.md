@@ -18,6 +18,7 @@ swarm提供了跟docker客户端一样的api，所以其他管理docker的工具
 其他的不多说，本文主要给出一个swarm集群的过程。
 
 **吐槽：**
+
 1. docker发展的很快，所以也导致版本较多，文档混乱，不同的文档给出的用法都不一样，所以坑特别多。
 2. 网上的视频或者常见的教程以及官方文档给出的swarm集群搭建都是使用virtualbox+docker machine来搭建的，使用这个组合确实简单，随便运行几个命令就搞定了，但是你让我部署服务的时候也用docker machine创建virtualbox啊？啊？啊？ 你这么教我搭建swarm和没教有啥区别啊。。。
 
@@ -33,9 +34,9 @@ win7系统安装了virtualbox，virtualbox里面有三个虚拟机，每个虚�
 主机处在公司局域网中，虚拟机使用桥接方式加入局域网
 
 **虚拟机ip：**
-manager：10.2.9.54
-cluster1：10.2.9.82
-cluster2：10.2.9.49
+manager(10.2.9.54),
+cluster1(10.2.9.82), 
+cluster2(10.2.9.49)
 
 **docker版本：**
 1.11.2
@@ -45,9 +46,8 @@ cluster2：10.2.9.49
 
 ### 2. 吐槽 ###
 
-**吐槽**：
-
 之所以把环境写的这么详细，就是因为大部分时间其实都是被环境所困扰而进行不下去的。
+
 1. 网络环境
    网络环境处于公司的局域网中，同时因为需要跟docker的镜像库进行通信，所以虚拟机需要跟外网可以连接。刚好公司控制外网连接的方式是打开浏览器，输入员工账号登录，然后上网，而我下载的是minimal的centos镜像，没有ui，所以在能上外网这里就耽误了好久，后来终于可以使用curl发送一个登录链接来让虚拟机上网。
 2. docker版本
@@ -84,6 +84,7 @@ curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/in
 
 环境已经准备好了，现在就开始搭建集群了。
 我们的集群一共有三个节点：
+
 1. manager ： 负责管理
 2. cluster1： 服务节点1
 3. cluster2： 服务节点2
@@ -209,7 +210,7 @@ Docker Root Dir:
 Debug mode (client): false
 Debug mode (server): false
 WARNING: No kernel memory limit support
-> 
+>  
 
 可以看到Nodes下面有两个节点，就是我们的cluster1和2， 他们的status都是healthy，这就说明集群节点都正常，如果status是pending或者其他的，一般就会有个Error来说明错误是什么错误，解决错误即可。如果是克隆的虚拟机，可能会报key duplicate之类的错误，这个错误只需要把/etc/docker/key.json删除，然后按照步骤1重新启动docker daemon即可。
 
