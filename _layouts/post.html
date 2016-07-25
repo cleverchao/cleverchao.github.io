@@ -43,6 +43,28 @@ layout: default
   <br>作者：zhengjiachao 
   <br>URL : http://www.zhengjiachao.com{{page.url}}
 
+  
+
+  {%
+
+
+      if sorted_list and (site.navlinks == 'bottom' or site.navlinks == 'both')
+%}{%    unless perma
+%}{%      assign perma = '/topics/'
+%}{%    endunless
+%}{%    include fn_sortednav.html posclass='btnbottom'
+%}{%  endif
+%}{%  unless page.author == 'none'
+%}{%    include author-block.html %}
+  {%  endunless
+%}{%  if jekyll.environment == "production"
+%}{%    unless page.options contains nocomment or page.categories contains 'works'
+%}{%      include disqus.html %}
+  {%    endunless
+%}{%  endif
+%}
+    </div>
+    
   <div id="disqus_thread"></div>
   <script>
       /**
@@ -65,24 +87,4 @@ layout: default
   </script>
   <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
   </noscript>
-
-  {%
-
-
-      if sorted_list and (site.navlinks == 'bottom' or site.navlinks == 'both')
-%}{%    unless perma
-%}{%      assign perma = '/topics/'
-%}{%    endunless
-%}{%    include fn_sortednav.html posclass='btnbottom'
-%}{%  endif
-%}{%  unless page.author == 'none'
-%}{%    include author-block.html %}
-  {%  endunless
-%}{%  if jekyll.environment == "production"
-%}{%    unless page.options contains nocomment or page.categories contains 'works'
-%}{%      include disqus.html %}
-  {%    endunless
-%}{%  endif
-%}
-    </div>
   </section>
