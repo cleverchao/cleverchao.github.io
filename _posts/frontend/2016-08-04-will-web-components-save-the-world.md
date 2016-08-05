@@ -32,7 +32,7 @@ Now lets see what are the features web components provides:
 1. css is written and rendered isolated to the page, styles defined in css in web components do not affect the styles outside this components and styles defined outside do not affect the styles inside either. (FYI: there is some trick to break this rule and what I was talking about is under the default situation.)
 2. javascript does not run in an absolutely isolated scope ,so when the web component uses thr libs like jquery which defines global veriables in the `window` object, components like this component's combination will cause **thr lib confilction**.
 
-**We can guess that web components's purpose is to build absolutely isolated components so that different components developed with different frontend libs can live with each other peacefully, but obviously it can never reach that goal thanks to the leak of javascript scope.What web components is doing is trapped in a dilemma of isolating css but not javascript.**
+We can guess that web components's purpose is to build absolutely isolated components so that different components developed with different frontend libs can live with each other peacefully, but obviously it can never reach that goal thanks to the leak of javascript scope.What web components is doing is trapped in a dilemma of isolating css but not javascript.
 
 ## What should web components really do? ##
 
@@ -40,8 +40,13 @@ I thought there are two ways to do components work.
 
 ### 1. Isolate both css and javascript ###
 
+Obviously isolate javascript can fix the problem discussed before. Evenything is isolated like using iframe can stop components from conflicting with each other, so the components will definately be portable.
 
 
 ### 2. Do not isolate css but isolate javascript ###
+
+Actually I think that web components' feature now is just opposite to what it should be. 
+Consider that I am going to put some components in my own HTML page, what I really need are their functions but not all the styles. I want my page to have the same UI style, so I would like to change the component's style to fit my page.
+This is why I say that maybe the best way to build web component is to isolate javascript but not css.
 
 
