@@ -74,8 +74,10 @@ Plug 'scrooloose/nerdtree'
 Plug 'mattn/emmet-vim'
 Plug 'vim-scripts/Solarized'
 Plug 'chriskempson/vim-tomorrow-theme'
+Plug 'majutsushi/tagbar'
 ```
 里面安装了主题，文件树等插件，今后有别的插件也用这个形式写就可以，引号里面的是github上的用户/项目名。
+其中tagbar插件需要用到ctags，使用`sudo brew install ctags`安装一下即可，然后把安装的目录设置到一个变量里，具体参考下面的vim配置。
 
 b.配置vim特性
 
@@ -85,8 +87,12 @@ syntax enable
 set t_Co=256
 colorscheme monokai 
 set colorcolumn=180
+nmap <F8> :TagbarToggle<CR>
+nmap <F2> :NERDTreeToggle<CR>
+let g:tagbar_ctags_bin="/usr/local/Cellar/ctags/5.8_1/bin/ctags"
 ```
-这里配置了语法提示，颜色，主题等信息
+这里配置了语法提示，颜色，主题等信息。
+同时配置了f2可以呼出或关闭文件树（NERDTree），f8可以呼出或关闭outline（Tagbar）。
 
 现在在控制台执行`rcup`即可自动安装插件并使配置生效。
 至此应该已经配置完毕了，下面进入tmux玩耍一下吧。
